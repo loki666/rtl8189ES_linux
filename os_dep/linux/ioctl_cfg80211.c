@@ -438,6 +438,8 @@ u8 rtw_cfg80211_ch_switch_notify(_adapter *adapter, u8 ch, u8 bw, u8 offset, u8 
 	ret = rtw_chbw_to_cfg80211_chan_def(wiphy, &chdef, ch, bw, offset, ht);
 	if (ret != _SUCCESS)
 		goto exit;
+
+	wiphy_lock(wiphy);
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,3, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(6, 9, 0))
 	cfg80211_ch_switch_notify(adapter->pnetdev, &chdef, 0, 0);
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(5,19, 2))
@@ -445,6 +447,7 @@ u8 rtw_cfg80211_ch_switch_notify(_adapter *adapter, u8 ch, u8 bw, u8 offset, u8 
 #else
 	cfg80211_ch_switch_notify(adapter->pnetdev, &chdef);
 #endif
+	wiphy_unlock(wiphy);
 
 #else
 	int freq = rtw_ch2freq(ch);
@@ -459,7 +462,9 @@ u8 rtw_cfg80211_ch_switch_notify(_adapter *adapter, u8 ch, u8 bw, u8 offset, u8 
 	}
 
 	ctype = rtw_chbw_to_nl80211_channel_type(ch, bw, offset, ht);
+	wiphy_lock(wiphy);
 	cfg80211_ch_switch_notify(adapter->pnetdev, freq, ctype);
+	wiphy_unlock(wiphy);
 #endif
 
 exit:
